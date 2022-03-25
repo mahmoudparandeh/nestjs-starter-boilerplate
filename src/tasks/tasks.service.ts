@@ -7,6 +7,9 @@ import { TaskStatus } from './tasks-status.enum';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 import { GetTaskFilterDto } from './dto/get-task-filter.dto';
 import { User } from '../auth/user.entity';
+import { PageOptionsDto } from '../utils/pagination/dto/page-option.dto';
+import { PageDto } from '../utils/pagination/dto/page.dto';
+import { PageMetaDto } from '../utils/pagination/dto/page-meta.dto';
 
 @Injectable()
 export class TasksService {
@@ -14,7 +17,11 @@ export class TasksService {
     @InjectRepository(Task) private taskRepository: Repository<Task>,
   ) {}
 
-  async getTasks(filterDto: GetTaskFilterDto, user: User): Promise<Task[]> {
+  async getTasks(
+    filterDto: GetTaskFilterDto,
+    user: User,
+    pageOptionsDto: PageOptionsDto,
+  ): Promise<PageDto<Task>> {
     const { status, search } = filterDto;
     const query = this.taskRepository.createQueryBuilder('task');
     query.where({ user });
@@ -27,7 +34,12 @@ export class TasksService {
         { search: `%${search}%` },
       );
     }
-    return query.getMany();
+    query.take(pageOptionsDto.pageSize);
+    query.skip(pageOptionsDto.skip);
+    const itemCount = await query.getCount();
+    const tasks = await query.getMany();
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+    return new PageDto(tasks, pageMetaDto);
   }
 
   async getTaskById(id: number, user: User): Promise<Task> {

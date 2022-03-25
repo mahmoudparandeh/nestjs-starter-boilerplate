@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { Task } from './task.entity';
@@ -20,6 +20,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../auth/get-user.decorator';
 import { User } from '../auth/user.entity';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { PageOptionsDto } from '../utils/pagination/dto/page-option.dto';
+import { PageDto } from '../utils/pagination/dto/page.dto';
 
 @Controller('tasks')
 @ApiTags('tasks')
@@ -31,9 +33,10 @@ export class TasksController {
   @Get()
   getTasks(
     @Query() filterDto: GetTaskFilterDto,
+    @Query() pageOptionsDto: PageOptionsDto,
     @GetUser() user: User,
-  ): Promise<Task[]> {
-    return this.taskService.getTasks(filterDto, user);
+  ): Promise<PageDto<Task>> {
+    return this.taskService.getTasks(filterDto, user, pageOptionsDto);
   }
 
   @Get('/:id')
