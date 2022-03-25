@@ -17,7 +17,7 @@ export class LoggerService {
     exception: HttpException,
   ): Promise<void> {
     const status = exception.getStatus();
-    const error = exception.message;
+    const error = exception.getResponse()['message'];
     const type = exception.name;
     const stack = exception.stack;
     const ip = request.ip;
@@ -25,9 +25,12 @@ export class LoggerService {
     const requestPath = request.path;
     const body = JSON.stringify(request.body);
     const query = JSON.stringify(request.query);
-    const auth = request.header('Authorization');
+    const auth = request.header('Authorization') ?? '';
     const jwt = auth.split(' ');
-    const decodedJwtAccessToken = this.jwtService.decode(jwt[1]);
+    let decodedJwtAccessToken;
+    if (jwt.length > 1) {
+      decodedJwtAccessToken = this.jwtService.decode(jwt[1]);
+    }
     const log = this.logRepository.create({
       ip,
       status,
@@ -37,7 +40,7 @@ export class LoggerService {
       body,
       auth,
       query,
-      userId: decodedJwtAccessToken['id'],
+      userId: jwt.length > 1 ? decodedJwtAccessToken['id'] : 0,
       userAgent,
       request: requestPath,
     });
