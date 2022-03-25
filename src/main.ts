@@ -4,14 +4,15 @@ import { ValidationPipe } from '@nestjs/common';
 import { TransformInterceptor } from './utils/transform.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { HttpExceptionFilter } from './utils/exception.filter';
-
+import { LoggerService } from './logger/logger.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const logger = app.get<LoggerService>(LoggerService);
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new TransformInterceptor());
   app.setGlobalPrefix('api/v1');
-  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(new HttpExceptionFilter(logger));
   const port = process.env.PORT;
   const config = new DocumentBuilder()
     .setTitle('Task Management')
