@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TasksModule } from './tasks/tasks.module';
-import { TypeOrmConfigService } from './shared/typeorm/typeorm.service';
+import { TypeOrmConfigService } from './utils/typeorm.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';

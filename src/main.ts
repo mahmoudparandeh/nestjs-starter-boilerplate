@@ -1,15 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger, ValidationPipe } from '@nestjs/common';
-import { TransformInterceptor } from './shared/interceptor/transform.interceptor';
+import { ValidationPipe } from '@nestjs/common';
+import { TransformInterceptor } from './utils/transform.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { HttpExceptionFilter } from './utils/exception.filter';
+
 
 async function bootstrap() {
-  const logger = new Logger();
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new TransformInterceptor());
   app.setGlobalPrefix('api/v1');
+  app.useGlobalFilters(new HttpExceptionFilter());
   const port = process.env.PORT;
   const config = new DocumentBuilder()
     .setTitle('Task Management')
@@ -21,6 +23,5 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
   await app.listen(port);
-  logger.log(`Application is listening on port ${port}`);
 }
 bootstrap().then();
