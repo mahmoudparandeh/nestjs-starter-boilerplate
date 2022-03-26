@@ -5,19 +5,28 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
 import { JwtPayload } from './jw-payload.interface';
+import { Request } from 'express';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+export class JwtRefreshStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-refresh',
+) {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {
     super({
       secretOrKey: process.env.JWT_SECRET,
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      passReqToCallback: true,
     });
   }
 
-  async validate(payload: JwtPayload): Promise<User> {
+  async validate(
+    req: Request,
+    payload: JwtPayload,
+  ): Promise<{ user: User; refreshToken: string }> {
+    const refreshToken = req.header('refreshToken');
     const { id } = payload;
     const user = await this.userRepository.findOne({
       where: {
@@ -27,6 +36,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     if (!user) {
       throw new UnauthorizedException();
     }
-    return user;
+    return {
+      user,
+      refreshToken,
+    };
   }
 }

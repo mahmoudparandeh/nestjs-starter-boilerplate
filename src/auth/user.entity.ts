@@ -11,6 +11,9 @@ export class User {
   username: string;
 
   @Column()
+  @Exclude({
+    toPlainOnly: true,
+  })
   password: string;
 
   @OneToMany(() => Task, (task) => task.user, { eager: true })
@@ -21,9 +24,15 @@ export class User {
 
   @Column()
   @CreateDateColumn()
+  @Exclude({
+    toPlainOnly: true,
+  })
   createdAt: Date;
 
   @Column()
   @UpdateDateColumn()
+  @Exclude({
+    toPlainOnly: true,
+  })
   updatedAt: Date;
 }
