@@ -14,6 +14,10 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './jw-payload.interface';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RefreshToken } from './refresh-token.entity';
+import { TaskSchedule } from '../utils/schedule/task.schedule';
+import { FirebaseService } from '../utils/firebase-messaging/firebase.service';
+import { NotificationDto } from './dto/notification.dto';
+import { FirebasePayload } from '../utils/firebase-messaging/firebase-payload.interface';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +26,8 @@ export class AuthService {
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
     private jwtService: JwtService,
+    private taskScheduler: TaskSchedule,
+    private firebaseService: FirebaseService,
   ) {}
 
   async createUser(userDto: UserDto): Promise<User> | null {
@@ -43,7 +49,7 @@ export class AuthService {
 
   async signIn(
     userDto: UserDto,
-  ): Promise<{ user: User, accessToken: string; refreshToken: string }> {
+  ): Promise<{ user: User; accessToken: string; refreshToken: string }> {
     const { username, password } = userDto;
     const user = await this.userRepository.findOne({
       where: {
@@ -56,6 +62,9 @@ export class AuthService {
         payload,
         true,
       );
+      this.taskScheduler.addCronJob('logger', '0 * * * * *', () => {
+        console.log('user is logged in');
+      });
       return {
         user,
         accessToken,
@@ -93,7 +102,10 @@ export class AuthService {
         id: decodedJwtAccessToken['id'],
         username: decodedJwtAccessToken['username'],
       };
-      const { accessToken, refreshToken } = await this.generateTokens(payload, false);
+      const { accessToken, refreshToken } = await this.generateTokens(
+        payload,
+        false,
+      );
       const refreshTokenHash = await argon2.hash(refreshToken);
       await this.refreshTokenRepository.update(
         { id: refreshTokenEntities[refreshTokenEntityIndex].id },
@@ -128,5 +140,16 @@ export class AuthService {
       await this.refreshTokenRepository.save(refreshTokenEntity);
     }
     return { accessToken, refreshToken };
+  }
+
+  async sendNotification(notificationDto: NotificationDto): Promise<void> {
+    const { fcmToken, title, body } = notificationDto;
+    const data: FirebasePayload = {
+      notification: {
+        title,
+        body,
+      },
+    };
+    await this.firebaseService.sendMessageToDevice(fcmToken, data);
   }
 }

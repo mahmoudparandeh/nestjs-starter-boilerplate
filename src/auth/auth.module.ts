@@ -9,6 +9,8 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
 import { RefreshToken } from './refresh-token.entity';
 import { JwtRefreshStrategy } from './jwt-refresh.strategy';
+import { TaskSchedule } from '../utils/schedule/task.schedule';
+import { FirebaseService } from '../utils/firebase-messaging/firebase.service';
 
 @Module({
   imports: [
@@ -22,7 +24,13 @@ import { JwtRefreshStrategy } from './jwt-refresh.strategy';
     }),
     TypeOrmModule.forFeature([User, RefreshToken]),
   ],
-  providers: [AuthService, JwtStrategy, JwtRefreshStrategy],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    JwtRefreshStrategy,
+    TaskSchedule,
+    FirebaseService,
+  ],
   controllers: [AuthController],
   exports: [JwtStrategy, JwtRefreshStrategy, PassportModule],
 })

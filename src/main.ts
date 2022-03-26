@@ -5,6 +5,8 @@ import { TransformInterceptor } from './utils/transform.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { HttpExceptionFilter } from './utils/exception.filter';
 import { LoggerService } from './logger/logger.service';
+import { ServiceAccount } from 'firebase-admin';
+import * as admin from 'firebase-admin';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +15,15 @@ async function bootstrap() {
   app.useGlobalInterceptors(new TransformInterceptor());
   app.setGlobalPrefix('api/v1');
   app.useGlobalFilters(new HttpExceptionFilter(logger));
+  const adminConfig: ServiceAccount = {
+    projectId: process.env.PROJECT_ID,
+    privateKey: process.env.PRIVATE_KEY,
+    clientEmail: process.env.CLIENT_EMAIL,
+  };
+  admin.initializeApp({
+    credential: admin.credential.cert(adminConfig),
+  });
+
   const port = process.env.PORT;
   const config = new DocumentBuilder()
     .setTitle('Task Management')

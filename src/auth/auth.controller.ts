@@ -1,10 +1,10 @@
-import { Body, Controller, Headers, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Headers, Post } from '@nestjs/common';
 import { UserDto } from './dto/user.dto';
 import { AuthService } from './auth.service';
 import { User } from './user.entity';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { RefreshTokenGuard } from './guards/refreshToken.guard';
+import { NotificationDto } from './dto/notification.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -32,5 +32,10 @@ export class AuthController {
       refreshToken: headers['refreshtoken'],
     };
     return this.authService.refresh(refreshToken);
+  }
+
+  @Post('/notification')
+  sentNotification(@Body() notificationDto: NotificationDto): Promise<void> {
+    return this.authService.sendNotification(notificationDto);
   }
 }
