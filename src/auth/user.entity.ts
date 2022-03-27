@@ -1,13 +1,16 @@
 import {
+  BeforeInsert, BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
+  UpdateDateColumn
 } from 'typeorm';
 import { Task } from '../tasks/task.entity';
 import { Exclude } from 'class-transformer';
+import * as argon2 from 'argon2';
+
 
 @Entity()
 export class User {
@@ -42,4 +45,10 @@ export class User {
     toPlainOnly: true,
   })
   updatedAt: Date;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  async setPassword() {
+    this.password = await argon2.hash(this.password);
+  }
 }

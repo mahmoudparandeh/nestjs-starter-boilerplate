@@ -36,6 +36,7 @@ export class TasksService {
     }
     query.take(pageOptionsDto.pageSize);
     query.skip(pageOptionsDto.skip);
+    query.withDeleted();
     const itemCount = await query.getCount();
     const tasks = await query.getMany();
     const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
@@ -43,12 +44,10 @@ export class TasksService {
   }
 
   async getTaskById(id: number, user: User): Promise<Task> {
-    const found = await this.taskRepository.findOne({
-      where: {
-        id,
-        user,
-      },
-    });
+    const query = this.taskRepository.createQueryBuilder('task');
+    query.where({ user });
+    query.andWhere({ id });
+    const found = await query.getOne();
     if (!found) {
       throw new NotFoundException('Task with given id is not found');
     }
@@ -69,7 +68,7 @@ export class TasksService {
 
   async deleteTask(id: number, user: User): Promise<Task> {
     const found = await this.getTaskById(id, user);
-    await this.taskRepository.delete(found.id);
+    await this.taskRepository.softDelete(found.id);
     return found;
   }
 
@@ -82,5 +81,12 @@ export class TasksService {
     found.status = updateTaskStatusDto.status;
     await this.taskRepository.save(found);
     return found;
+  }
+
+  async restoreDeletedTask(id: number) {
+    const restoreResponse = await this.taskRepository.restore(id);
+    if (!restoreResponse.affected) {
+      throw new NotFoundException('The provided task is not found');
+    }
   }
 }

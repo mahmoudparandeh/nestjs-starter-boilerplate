@@ -1,6 +1,7 @@
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -27,12 +28,14 @@ export class Task {
   @ManyToOne(() => User, (user) => user.tasks, { eager: false })
   user: User;
 
-  @Column()
   @CreateDateColumn()
   createdAt: Date;
 
-  @Column()
   @UpdateDateColumn()
   @Exclude()
   updatedAt: Date;
+
+  @DeleteDateColumn()
+  @Exclude()
+  deletedAt: Date;
 }

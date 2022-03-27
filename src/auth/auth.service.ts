@@ -32,10 +32,9 @@ export class AuthService {
 
   async createUser(userDto: UserDto): Promise<User> | null {
     const { username, password } = userDto;
-    const hash = await argon2.hash(password);
     const user = this.userRepository.create({
       username,
-      password: hash,
+      password,
     });
     try {
       await this.userRepository.save(user);

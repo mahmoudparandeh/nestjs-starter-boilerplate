@@ -34,8 +34,4 @@ import { FirebaseService } from '../utils/firebase-messaging/firebase.service';
   controllers: [AuthController],
   exports: [JwtStrategy, JwtRefreshStrategy, PassportModule],
 })
-export class AuthModule {
-  constructor() {
-    console.log(process.env.JWT_SECRET);
-  }
-}
+export class AuthModule {}
